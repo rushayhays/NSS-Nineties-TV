@@ -38,6 +38,7 @@ namespace NinetiesTV
             Print("All Distinct Genres", ListOfGenres(shows));
             Print("Shows started by year", YearLog(shows));
             Print("How many minutes it would take to watch all the episodes", TimeWasted(shows));
+            Print("Year with highest rating", HighestImdbYear(shows));
 
         }
 
@@ -103,11 +104,15 @@ namespace NinetiesTV
             return shows.Where(s=>s.Name.StartsWith("The ")).ToList();
         }
 
-        // 10. Return all shows except for the lowest rated show.
+        // 10. Return all shows except for the lowest rated show.---------------------------------------------------------------------------------
         static List<Show> AllButWorst(List<Show> shows)
         {
             double worstrating = shows.Min(s=>s.ImdbRating);
             return shows.Where(s=>s.ImdbRating != worstrating).ToList();
+
+            /*class example
+            return shows.OrderBy(s=> s.ImdbRating).Skip(1).ToList();
+            */
         }
 
         // 11. Return the names of the shows that had fewer than 100 episodes.
@@ -184,6 +189,12 @@ namespace NinetiesTV
             char[] delimiters = new char[] {' ', '\r', '\n' };
  
             return shows.OrderByDescending(s=>s.Name.Split(delimiters,StringSplitOptions.RemoveEmptyEntries).Length).ToList()[0];
+
+            /*
+            return shows.OrderByDescending(s=>s.Name.Split(" ").Count).First();
+            or
+            return shows.OrderByDescending(s=>s.Name.Split(" ").Length).First();
+            */
         }
 
         // 22. Return the names of all shows as a single string seperated by a comma and a space.
@@ -191,6 +202,10 @@ namespace NinetiesTV
         {
             List<string> showNames = shows.Select(s=>s.Name).ToList();
             return string.Join(", ", showNames);
+
+            /*
+            return String.Join(" ,",shows.Select(s=>s.Name));
+            */
         }
 
         // 23. Do the same as above, but put the word "and" between the second-to-last and last show name.
@@ -201,6 +216,10 @@ namespace NinetiesTV
             showNames.Remove(showNames[showNames.Count-1]);
             string almostAllTheNames = string.Join(", ", showNames);
             return almostAllTheNames += $" and {lastShow}";
+
+                        /*
+            return String.Join(" ,",shows.Select(s=>s.Name).Take(shows.Count-1) + " and " + shows.Last().Name;
+            */
         }
 
 
@@ -233,6 +252,10 @@ namespace NinetiesTV
             
             return allTheGenresOfTheEighties;
 
+            /*
+                return shows.Where(s=>s.StartYear >= 1980 && s.StartYear < 1990).SlectMany(s=>s.Genres).Distinct().ToList();
+            */
+
         }
         // 2. Print a unique list of geners.
         static List<string> ListOfGenres(List<Show> shows)
@@ -249,6 +272,14 @@ namespace NinetiesTV
                  ";
             }
             return bigString;
+
+            /*
+            shows
+            .Where(s=>s.StartYear > 1986 && s.StartYear < 2019)
+            .GroupBy(s=> s.StartYear)
+            .Select(yg => $"{yg.Key} - {yg.Count()}")
+            .ToList();
+            */
         }
         // 4. Assume each episode of a comedy is 22 minutes long and each episode of a show that isn't a comedy is 42 minutes. How long would it take to watch every episode of each show?
         static string TimeWasted(List<Show> shows)
@@ -271,7 +302,14 @@ namespace NinetiesTV
             
         }
         // 5. Assume each show ran each year between its start and end years (which isn't true), which year had the highest average IMDB rating.
-
+        /*This was all done in the class example*/
+        public static int HighestImdbYear(List<Show> shows)
+        {
+            return shows.SelectMany(s=> Enumerable.Range(s.StartYear, s.EndYear - s.StartYear+1).Select(y=> new {Year = y, Show = s}))
+            .GroupBy(showYear => showYear.Year)
+            .OrderByDescending(showYearGroup => showYearGroup.Average(sg => sg.Show.ImdbRating))
+            .First().Key;
+        }
 
 
         /**************************************************************************************************
